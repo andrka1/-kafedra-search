@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ИИ-помощник кафедры ИТ · семантический поиск по материалам</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E📚%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  (function(){
+    try {
+      var t = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    } catch(e) {}
+  })();
+</script>
+<style>
+  :root, :root[data-theme="dark"]{
+    --bg:#0F1216; --bg-2:#161A20; --card:#1B2027; --card-2:#20262E;
+    --line:#262C36; --line-2:#2E3644;
+    --fg:#E8E4DA; --fg-2:#B5B0A4; --fg-3:#7A756B;
+    --accent:#D97757;
+    --leaf:#8AB878; --leaf-soft: rgba(138,184,120,.12); --leaf-line: rgba(138,184,120,.28);
+    --sun:#E0A458;  --sun-soft: rgba(224,164,88,.12);  --sun-line: rgba(224,164,88,.28);
+    --rose:#D97557; --rose-soft: rgba(217,117,87,.12); --rose-line: rgba(217,117,87,.28);
+  }
+  :root[data-theme="light"]{
+    --bg:#FBF9F4; --bg-2:#F3EEE3; --card:#FFFFFF; --card-2:#F6F1E5;
+    --line:#E7DFCC; --line-2:#D8CDB2;
+    --fg:#26221E; --fg-2:#5A5348; --fg-3:#8E877A;
+    --accent:#B6553B;
+    --leaf:#3E7A47; --leaf-soft: rgba(62,122,71,.10); --leaf-line: rgba(62,122,71,.28);
+    --sun:#9E6B18;  --sun-soft: rgba(158,107,24,.10); --sun-line: rgba(158,107,24,.28);
+    --rose:#B6553B; --rose-soft: rgba(182,85,59,.10); --rose-line: rgba(182,85,59,.28);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color:var(--fg); background:var(--bg);
+    line-height:1.55; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    min-height:100vh; transition: background .2s ease, color .2s ease;
+  }
+  .wrap{max-width:960px; margin:0 auto; padding:36px 24px 60px; position:relative; z-index:1}
+
+  header{
+    display:flex; align-items:center; justify-content:space-between; gap:24px;
+    padding-bottom:22px; border-bottom:1px solid var(--line); margin-bottom:32px;
+  }
+  .brand h1{font-weight:600; font-size:18px; margin:0; letter-spacing:-.1px; color:var(--fg)}
+  .header-right{display:flex; align-items:center; gap:18px}
+  .nav{display:flex; gap:18px; font-size:13.5px; color:var(--fg-3)}
+  .nav a{color:var(--fg-3); text-decoration:none; transition:color .15s}
+  .nav a:hover{color:var(--fg)}
+
+  .theme-toggle{
+    appearance:none; border:1px solid var(--line-2); background:var(--card); color:var(--fg-2);
+    width:34px; height:34px; border-radius:8px;
+    display:inline-flex; align-items:center; justify-content:center;
+    cursor:pointer; padding:0; transition: background .15s, color .15s, border-color .15s;
+  }
+  .theme-toggle:hover{color:var(--fg); border-color:var(--fg-3)}
+  .theme-toggle svg{width:16px; height:16px; display:block}
+  .theme-toggle .icon-sun{display:none}
+  .theme-toggle .icon-moon{display:block}
+  :root[data-theme="light"] .theme-toggle .icon-sun{display:block}
+  :root[data-theme="light"] .theme-toggle .icon-moon{display:none}
+
+  .lede{margin:8px 0 28px}
+  .lede h2{font-weight:600; font-size:32px; line-height:1.2; margin:0 0 12px; color:var(--fg); letter-spacing:-.4px}
+  .lede h2 span.accent{color:var(--accent)}
+  .lede p{margin:0; color:var(--fg-2); font-size:15px; max-width:640px}
+
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px 22px;
+    transition: background .2s ease, border-color .2s ease;
+  }
+  .card + .card{margin-top:16px}
+
+  .field-label{font-weight:600; font-size:14px; color:var(--fg); margin:0 0 10px 2px}
+
+  .search .row{display:flex; gap:10px; align-items:stretch}
+  .search textarea{
+    flex:1; resize:vertical; min-height:64px; max-height:220px;
+    padding:14px 16px; font: 15px/1.5 'Inter', sans-serif;
+    color:var(--fg); background:var(--bg-2);
+    border:1px solid var(--line-2); border-radius:10px; outline:none;
+    transition:border-color .15s, background .15s;
+  }
+  .search textarea:focus{border-color:var(--accent); background:var(--bg)}
+  .search textarea::placeholder{color:var(--fg-3)}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; padding:0 20px;
+    background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:10px;
+    font: 500 14px/1 'Inter', sans-serif; cursor:pointer;
+    transition:transform .06s, background .15s, border-color .15s, opacity .15s;
+  }
+  .btn:hover{filter:brightness(.92)}
+  .btn:active{transform:translateY(1px)}
+  .btn[disabled]{opacity:.55; cursor:progress}
+
+  .modes{margin-top:14px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap}
+  .switcher{display:inline-flex; padding:4px; gap:2px; background:var(--bg-2); border:1px solid var(--line-2); border-radius:999px}
+  .switcher button{
+    appearance:none; border:0; background:transparent;
+    padding:8px 14px; border-radius:999px;
+    font: 500 13px/1 'Inter', sans-serif; color:var(--fg-2); cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px;
+    transition:background .15s, color .15s;
+  }
+  .switcher button:hover{color:var(--fg)}
+  .switcher button.active{background:var(--card-2); color:var(--fg)}
+  .hint{color:var(--fg-3); font-size:12.5px}
+
+  .examples{margin-top:16px; display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+  .examples-lead{color:var(--fg-3); font-size:13px; margin-right:4px}
+  .chip{
+    appearance:none; border:1px dashed var(--line-2); background:transparent;
+    color:var(--fg-2); font-size:13px; padding:6px 12px; border-radius:999px;
+    cursor:pointer; transition:background .15s, color .15s, border-color .15s;
+  }
+  .chip:hover{background:var(--bg-2); border-color:var(--fg-3); color:var(--fg)}
+
+  .section-title{display:flex; align-items:center; gap:10px; font-weight:600; font-size:15px; color:var(--fg); margin:0 0 12px}
+  .section-title .dot{width:7px; height:7px; border-radius:50%; background:var(--accent)}
+  .section-title small{font-weight:400; color:var(--fg-3); font-size:12.5px}
+
+  #answer-card{display:none}
+  #answer-card.on{display:block}
+  .answer{
+    background:var(--bg-2); border:1px solid var(--line-2); border-left:3px solid var(--accent);
+    border-radius:10px; padding:16px 18px;
+    color:var(--fg); font-size:14.5px; line-height:1.7; white-space:pre-wrap;
+  }
+
+  #results-card{display:none}
+  #results-card.on{display:block}
+  .results{display:flex; flex-direction:column; gap:12px}
+  .result{border:1px solid var(--line); border-radius:12px; padding:14px 16px 12px; background:var(--bg-2)}
+  .result-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:6px}
+  .result .doc{font-weight:600; font-size:14.5px; color:var(--fg)}
+  .result .doc .num{color:var(--fg-3); font-weight:500; margin-right:6px}
+  .result .score{
+    font-size:12.5px; background:var(--leaf-soft); border:1px solid var(--leaf-line); color:var(--leaf);
+    padding:2px 10px; border-radius:999px; white-space:nowrap;
+  }
+  .result .score.mid{background:var(--sun-soft); border-color:var(--sun-line); color:var(--sun)}
+  .result .score.low{background:var(--rose-soft); border-color:var(--rose-line); color:var(--rose)}
+  .result .text{
+    color:var(--fg-2); font-size:14px; line-height:1.65;
+    border-left:2px solid var(--line-2); padding:2px 0 2px 12px; margin-top:6px;
+  }
+
+  .status{color:var(--fg-3); font-size:13.5px; padding:14px 4px}
+  .error{color:var(--rose); background:var(--rose-soft); border:1px solid var(--rose-line); border-radius:10px; padding:10px 14px; font-size:13.5px}
+
+  @media (max-width:640px){
+    .lede h2{font-size:24px}
+    .search .row{flex-direction:column}
+    .btn{justify-content:center; padding:14px 20px}
+    header{flex-direction:column; align-items:flex-start; gap:12px}
+    .header-right{width:100%; justify-content:space-between}
+    .nav{gap:14px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand"><h1>Библиотека кафедры</h1></div>
+    <div class="header-right">
+      <div class="nav">
+        <a href="/docs" target="_blank">API</a>
+        <a href="/api/health" target="_blank">состояние</a>
+        <a href="/api/stats" target="_blank">статистика</a>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" title="Переключить тему" aria-label="Переключить тему">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="lede">
+    <h2>Спросите как у <span class="accent">преподавателя</span> — <br>найдём ответ в лекциях кафедры.</h2>
+    <p>Семантический поиск по учебным материалам — найди ответ в лекциях и методичках, даже если не помнишь точных слов.</p>
+  </div>
+
+  <section class="card search">
+    <div class="field-label">Задай вопрос по материалам кафедры</div>
+    <div class="row">
+      <textarea id="q" placeholder="Например: что такое производная?"></textarea>
+      <button class="btn" id="send">Спросить <span aria-hidden="true">→</span></button>
+    </div>
+
+    <div class="modes">
+      <div class="switcher" role="tablist" aria-label="Режим ответа">
+        <button type="button" class="mode-btn active" data-mode="raw" role="tab" aria-selected="true">
+          <span>📖</span> Только цитаты
+        </button>
+        <button type="button" class="mode-btn" data-mode="ai" role="tab" aria-selected="false">
+          <span>✍️</span> Собрать ответ
+        </button>
+      </div>
+      <div class="hint" id="mode-hint">Показать самые подходящие фрагменты из лекций.</div>
+    </div>
+
+    <div class="examples" id="examples">
+      <span class="examples-lead">Попробуй:</span>
+      <button class="chip">Что такое производная?</button>
+      <button class="chip">Как найти площадь под графиком?</button>
+      <button class="chip">Разница массива и связного списка</button>
+      <button class="chip">Второй закон Ньютона</button>
+    </div>
+  </section>
+
+  <section class="card" id="answer-card">
+    <div class="section-title">
+      <span class="dot"></span>
+      Короткий ответ <small>собран по материалам ниже</small>
+    </div>
+    <div class="answer" id="answer"></div>
+  </section>
+
+  <section class="card" id="results-card">
+    <div class="section-title">
+      <span class="dot"></span>
+      Из каких мест конспектов <small id="results-meta"></small>
+    </div>
+    <div class="results" id="results"></div>
+  </section>
+
+  <div id="status"></div>
+</div>
+
+<script>
+  const $ = (s) => document.querySelector(s);
+  const q = $('#q');
+  const send = $('#send');
+  const answerCard = $('#answer-card');
+  const answer = $('#answer');
+  const resultsCard = $('#results-card');
+  const resultsBox = $('#results');
+  const resultsMeta = $('#results-meta');
+  const status = $('#status');
+  const modeHint = $('#mode-hint');
+  const themeToggle = $('#theme-toggle');
+  let mode = 'raw';
+
+  const HINTS = {
+    raw: 'Показать самые подходящие фрагменты из лекций.',
+    ai: 'Помощник соберёт короткий ответ, опираясь только на найденные фрагменты.'
+  };
+
+  themeToggle.addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('theme', next); } catch(e) {}
+  });
+
+  document.querySelectorAll('.mode-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.mode-btn').forEach(x => {
+        x.classList.remove('active');
+        x.setAttribute('aria-selected', 'false');
+      });
+      b.classList.add('active');
+      b.setAttribute('aria-selected', 'true');
+      mode = b.dataset.mode;
+      modeHint.textContent = HINTS[mode];
+    });
+  });
+
+  document.querySelectorAll('#examples .chip').forEach(c => {
+    c.addEventListener('click', () => { q.value = c.textContent; q.focus(); });
+  });
+
+  q.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); ask(); }
+  });
+  send.addEventListener('click', ask);
+
+  function scoreClass(s){
+    if (s >= 0.75) return '';
+    if (s >= 0.55) return 'mid';
+    return 'low';
+  }
+  function pct(s){ return Math.round(s * 100) + '%' }
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  async function ask(){
+    const text = q.value.trim();
+    if (!text){ q.focus(); return; }
+    answerCard.classList.remove('on');
+    resultsCard.classList.remove('on');
+    status.innerHTML = '<div class="status">Ищу подходящие фрагменты…</div>';
+    send.disabled = true;
+
+    try{
+      const res = await fetch('/api/ask', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ question: text, mode })
+      });
+      if (!res.ok) throw new Error('Сервер вернул ' + res.status);
+      const data = await res.json();
+
+      if (mode === 'ai' && data.answer){
+        answer.textContent = data.answer;
+        answerCard.classList.add('on');
+      }
+
+      const items = data.fragments || data.results || data.matches || [];
+      resultsMeta.textContent = items.length
+        ? '· найдено ' + items.length + ' фрагмент' + (items.length === 1 ? '' : items.length < 5 ? 'а' : 'ов')
+        : '';
+      if (items.length){
+        resultsBox.innerHTML = items.map((r, i) => {
+          const s = typeof r.score === 'number' ? r.score : 0;
+          const src = r.source || r.file || r.document || 'фрагмент';
+          const txt = r.text || r.content || r.snippet || '';
+          return `
+            <div class="result">
+              <div class="result-head">
+                <div class="doc"><span class="num">${i+1}.</span>${esc(src)}</div>
+                <div class="score ${scoreClass(s)}">совпадение ${pct(s)}</div>
+              </div>
+              <div class="text">${esc(txt)}</div>
+            </div>`;
+        }).join('');
+        resultsCard.classList.add('on');
+        status.innerHTML = '';
+      } else if (!answerCard.classList.contains('on')) {
+        status.innerHTML = '<div class="status">Ничего подходящего не нашлось. Попробуйте переформулировать вопрос — например, ближе к терминам из лекций.</div>';
+      } else {
+        status.innerHTML = '';
+      }
+    } catch (err){
+      status.innerHTML = '<div class="error">Не удалось получить ответ: ' + esc(err.message) + '</div>';
+    } finally {
+      send.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

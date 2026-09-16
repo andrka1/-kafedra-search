@@ -1,0 +1,16 @@
+# Основные библиотеки для RAG-прототипа
+chromadb>=0.5.20
+sentence-transformers>=3.0
+langchain>=0.3
+langchain-community>=0.3
+langchain-text-splitters>=0.3
+pypdf>=5.0
+docx2txt>=0.8
+
+# Веб-сервер
+fastapi>=0.115
+uvicorn[standard]>=0.32
+
+# Опционально: для ответов через OpenAI
+openai>=1.50
+python-dotenv>=1.0
